@@ -1,3 +1,1 @@
-service "org.apache.httpd" do
-  action :nothing
-end
+service "org.apache.httpd"

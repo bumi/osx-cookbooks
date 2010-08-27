@@ -1,7 +1,6 @@
 define :launch_service do
   resource = service params[:name] do
     provider Chef::Provider::Service::Launch
-    action :nothing
   end
 
   params[:template_name] ||= "#{params[:name]}.plist.erb"
