@@ -2,6 +2,7 @@ directory node[:homebrew][:prefix] do
   action :create
 end
 
+directory Chef::Config[:file_cache_path]
 homebrew_tar = "#{Chef::Config[:file_cache_path]}/mxcl-homebrew.tar.gz"
 
 remote_file homebrew_tar do
