@@ -13,7 +13,12 @@ execute "tar -xzf #{homebrew_tar} -C #{node[:homebrew][:prefix]} --strip 1" do
   creates "#{node[:homebrew][:prefix]}/bin/brew"
 end
 
-execute "#{node[:homebrew][:prefix]}/bin/brew --version"
+ruby_block "check homebrew" do
+  block do
+    result = `#{node[:homebrew][:prefix]}/bin/brew --version`
+    raise("brew not working: #{result}") unless result.strip.to_f >= 0.7
+  end
+end
 
 package "git"
 
