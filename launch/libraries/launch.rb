@@ -30,6 +30,7 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
   def load_current_resource
     @current_resource = Chef::Resource::Service.new(new_resource.name)
     @current_resource.service_name(new_resource.service_name)
+    @status = service_status.enabled
     @current_resource
   end
 
