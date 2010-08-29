@@ -20,13 +20,13 @@ class Chef::Provider::Package::Homebrew < ::Chef::Provider::Package
   end
 
   def current_installed_version
-    v = %x{brew list #{@new_resource.package_name} --versions}.chomp.split(' ').last
-    $?.success? ? v : nil
+    status, stdout, stderr = output_of_command("brew list #{@new_resource.package_name} --versions", {})
+    status == 0 ? stdout.split(' ')[-1] : nil
   end
 
   def homebrew_candiate_version
-    v = %x{brew info #{@new_resource.package_name} | head -n1 | awk '{print $2}'}.chomp
-    $?.success? ? v : nil
+    status, stdout, stderr = output_of_command("brew info #{@new_resource.package_name} | head -n1", {})
+    status == 0 ? stdout.split(' ')[1] : nil
   end
 
   def install_package(name, version)
