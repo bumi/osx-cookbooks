@@ -42,7 +42,7 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
     @path ||= self.class.detect_path(label)
   end
 
-  def needs_sudo?
+  def use_sudo?
     path =~ %r{^/System}
   end
 
@@ -85,10 +85,14 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
   end
 
   def service_status
-    pid = %x{#{sudo}#{status_command} | grep #{label} | awk '{print $1}'}.chomp
+    status, stdout, stderr = output_of_command("#{sudo}#{status_command} | grep #{label}", {})
+
+    if status == 0
+      pid = stdout.split(' ')[0]
+    end
 
     case pid
-    when ''
+    when nil, ''
       current_resource.enabled(false)
       current_resource.running(false)
     when '-'
@@ -104,7 +108,7 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
 
   private
     def sudo
-      if needs_sudo?
+      if use_sudo?
         "sudo "
       else
         ""
