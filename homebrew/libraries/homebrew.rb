@@ -46,7 +46,7 @@ class Chef::Provider::Package::Homebrew < ::Chef::Provider::Package
   end
 
   def run_brew_command(command)
-    run_command_with_systems_locale(:command => command)
+    run_command(:command => command)
   end
 end
 
