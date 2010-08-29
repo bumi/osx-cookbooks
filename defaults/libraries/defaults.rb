@@ -6,6 +6,7 @@ class Chef::Resource::Defaults < Chef::Resource
 
     @domain = domain
     @key = key
+    @type = nil
     @value = nil
 
     @resource_name = :defaults
@@ -21,6 +22,10 @@ class Chef::Resource::Defaults < Chef::Resource
     set_or_return(:key, arg, :kind_of => [String])
   end
 
+  def type(arg = nil)
+    set_or_return(:type, arg, :kind_of => [String])
+  end
+
   def value(arg = nil)
     set_or_return(:value, arg, {})
   end
@@ -30,128 +35,123 @@ end
 require 'chef/provider'
 
 class Chef::Provider::Defaults < Chef::Provider
-  class Option < Struct.new(:domain, :key, :value)
-    class Type < Struct.new(:value)
-      def to_s
-        value.inspect
-      end
-    end
+  def self.decoders
+    @decoders ||= {}
+  end
 
-    class UnknownType < Type
-      def self.new(value)
-        raise "unknown type: #{value.inspect}"
-      end
+  def self.encoders
+    @encoders ||= {}
+  end
 
-      def self.to_s
-        raise NotImplemented
-      end
+  def self.decoder(type, &block)
+    decoders[type.to_s] = block
+  end
 
-      def self.from_ruby(value)
-        Chef::Log.debug "Guessing defaults type for #{value.inspect}"
-        [Boolean, String].each do |type|
-          if obj = type.from_ruby(value) rescue nil
-            return obj
-          end
-        end
-        raise "unknown object: #{value.inspect}"
-      end
-    end
+  def self.encoder(type, &block)
+    encoders[type.to_s] = block
+  end
 
-    class Boolean < Type
-      def self.to_s
-        'boolean'
-      end
 
-      def self.from_ruby(obj)
-        case obj
-        when TrueClass
-          new('YES')
-        when FalseClass, NilClass
-          new('NO')
-        else
-          raise "unknown object: #{obj.inspect}"
-        end
-      end
-
-      def to_ruby
-        case value
-        when '1', 'YES'
-          true
-        when '0', 'NO'
-          false
-        else
-          raise "unknown value: #{value.inspect}"
-        end
-      end
-    end
-
-    class String < Type
-      def self.to_s
-        'string'
-      end
-
-      def self.from_ruby(obj)
-        if obj.respond_to?(:to_str)
-          new(obj)
-        else
-          raise "unknown object: #{obj.inspect}"
-        end
-      end
-
-      def to_ruby
-        value
-      end
-    end
-
-    def type
-      @type ||= read_type
-    end
-
-    def read_type
-      if %x{defaults read-type #{domain} #{key} 2> /dev/null} =~ /Type is (\w+)/
-        case $1
-        when 'boolean'
-          Boolean
-        when 'string'
-          String
-        else
-          UnknownType
-        end
-      else
-        UnknownType
-      end
-    end
-
-    def update_to_date?
-      read == value
-    end
-
-    def read
-      value = %x{defaults read #{domain} #{key} 2> /dev/null}.chomp
-      $?.success? ? type.new(value).to_ruby : nil
-    end
-
-    def write_command
-      value = type.from_ruby(self.value)
-      "defaults write #{domain} #{key} -#{value.class} #{value}"
+  decoder :boolean do |value|
+    case value
+    when '1', 'YES'
+      true
+    when '0', 'NO'
+      false
+    else
+      nil
     end
   end
+
+  encoder :boolean do |obj|
+    case obj
+    when TrueClass
+      'YES'
+    when FalseClass, NilClass
+      'NO'
+    else
+      nil
+    end
+  end
+
+  decoder :string do |value|
+    value
+  end
+
+  encoder :string do |obj|
+    if obj.respond_to?(:to_str)
+      obj
+    else
+      nil
+    end
+  end
+
 
   include Chef::Mixin::Command
 
   def load_current_resource
-    true
+    domain = new_resource.domain
+    key    = new_resource.key
+
+    @current_resource = Chef::Resource::Defaults.new(domain, key)
+
+    status, stdout, stderr = output_of_command("defaults read-type #{domain} #{key}", {})
+    if status == 0 && stdout =~ /Type is (\w+)/
+      @current_resource.type($1)
+    end
+
+    if @new_resource.type.nil?
+      @new_resource.type(@current_resource.type)
+    end
+
+    status, stdout, stderr = output_of_command("defaults read #{domain} #{key}", {})
+    if status == 0
+      value = decode(@current_resource.type, stdout)
+      @current_resource.value(value)
+    end
+
+    @current_resource
   end
 
   def action_run
-    option = Option.new(@new_resource.domain, @new_resource.key, @new_resource.value)
-    if option.update_to_date?
+    if @current_resource.type == @new_resource.type &&
+        @current_resource.value == @new_resource.value
       Chef::Log.debug "Skipping #{@new_resource} since the value is already set"
     else
-      if run_command(:command => option.write_command, :command_string => @new_resource.to_s)
+      if @new_resource.type.nil?
+        @new_resource.type(guess_type(@new_resource.value))
+      end
+
+      domain = @new_resource.domain
+      key    = @new_resource.key
+      type   = @new_resource.type
+      value  = encode(type, @new_resource.value)
+
+      command = "defaults write #{domain} #{key} -#{type} #{value.inspect}"
+
+      if run_command(:command => command, :command_string => @new_resource.to_s)
         @new_resource.updated = true
         Chef::Log.info("Ran #{@new_resource} successfully")
       end
     end
   end
+
+  private
+    def decode(type, value)
+      self.class.decoders[type].call(value)
+    end
+
+    def encode(type, obj)
+      self.class.encoders[type].call(obj)
+    end
+
+    def guess_type(obj)
+      Chef::Log.debug "Guessing defaults type for #{obj.inspect}"
+      self.class.encoders.each do |type, encoder|
+        if obj = encoder.call(obj)
+          return type
+        end
+      end
+      nil
+    end
 end
