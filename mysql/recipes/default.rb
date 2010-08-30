@@ -1,3 +1,5 @@
+include_recipe "homebrew"
+
 package "mysql"
 
 launch_service "com.mysql.mysqld" do

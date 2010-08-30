@@ -21,6 +21,6 @@ ruby_block "check homebrew" do
   end
 end
 
-package "git"
+include_recipe "git"
 
 execute "#{node[:homebrew][:prefix]}/bin/brew update"
