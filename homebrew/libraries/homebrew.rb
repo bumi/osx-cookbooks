@@ -30,7 +30,7 @@ class Chef::Provider::Package::Homebrew < ::Chef::Provider::Package
   end
 
   def install_package(name, version)
-    run_brew_command "brew install #{name}"
+    run_brew_command "brew install#{expand_options(@new_resource.options)} #{name}"
   end
 
   def upgrade_package(name, version)
