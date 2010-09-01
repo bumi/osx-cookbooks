@@ -1,6 +1,21 @@
 require 'chef/provider/package'
 
 class Chef::Provider::Package::Homebrew < ::Chef::Provider::Package
+  class << self
+    def config
+      @config || raise("node[:homebrew] is not set")
+    end
+    attr_writer :config
+
+    def user
+      config[:user]
+    end
+
+    def brew_bin
+      "#{config[:prefix]}/bin/brew"
+    end
+  end
+
   def load_current_resource
     @current_resource = Chef::Resource::HomebrewPackage.new(@new_resource.name)
     @current_resource.package_name(@new_resource.name)
@@ -20,17 +35,17 @@ class Chef::Provider::Package::Homebrew < ::Chef::Provider::Package
   end
 
   def current_installed_version
-    status, stdout, stderr = output_of_command("brew list #{@new_resource.package_name} --versions", {})
+    status, stdout, stderr = output_of_command("#{self.class.brew_bin} list #{@new_resource.package_name} --versions", {:user => self.class.user})
     status == 0 ? stdout.split(' ')[-1] : nil
   end
 
   def homebrew_candiate_version
-    status, stdout, stderr = output_of_command("brew info #{@new_resource.package_name} | head -n1", {})
+    status, stdout, stderr = output_of_command("#{self.class.brew_bin} info #{@new_resource.package_name} | head -n1", {:user => self.class.user})
     status == 0 ? stdout.split(' ')[1] : nil
   end
 
   def install_package(name, version)
-    run_brew_command "brew install#{expand_options(@new_resource.options)} #{name}"
+    run_brew_command "#{self.class.brew_bin} install#{expand_options(@new_resource.options)} #{name}"
   end
 
   def upgrade_package(name, version)
@@ -38,15 +53,15 @@ class Chef::Provider::Package::Homebrew < ::Chef::Provider::Package
   end
 
   def remove_package(name, version)
-    run_brew_command "brew unlink #{name}"
+    run_brew_command "#{self.class.brew_bin} unlink #{name}"
   end
 
   def purge_package(name, version)
-    run_brew_command "brew uninstall #{name}"
+    run_brew_command "#{self.class.brew_bin} uninstall #{name}"
   end
 
   def run_brew_command(command)
-    run_command(:command => command)
+    run_command(:command => command, :user => self.class.user)
   end
 end
 

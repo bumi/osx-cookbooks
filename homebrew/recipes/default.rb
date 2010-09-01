@@ -1,5 +1,8 @@
+Chef::Provider::Package::Homebrew.config = node[:homebrew]
+
 directory node[:homebrew][:prefix] do
   action :create
+  owner node[:homebrew][:user]
 end
 
 directory Chef::Config[:file_cache_path]
@@ -7,10 +10,12 @@ homebrew_tar = "#{Chef::Config[:file_cache_path]}/mxcl-homebrew.tar.gz"
 
 remote_file homebrew_tar do
   source "http://github.com/mxcl/homebrew/tarball/master"
+  owner node[:homebrew][:user]
   action :create_if_missing
 end
 
 execute "tar -xzf #{homebrew_tar} -C #{node[:homebrew][:prefix]} --strip 1" do
+  user node[:homebrew][:user]
   creates "#{node[:homebrew][:prefix]}/bin/brew"
 end
 
@@ -23,4 +28,6 @@ end
 
 include_recipe "git"
 
-execute "#{node[:homebrew][:prefix]}/bin/brew update"
+execute "#{node[:homebrew][:prefix]}/bin/brew update" do
+  user node[:homebrew][:user]
+end
