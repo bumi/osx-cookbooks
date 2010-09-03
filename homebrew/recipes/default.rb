@@ -1,6 +1,7 @@
 directory node[:homebrew][:prefix] do
   action :create
   owner node[:homebrew][:user]
+  group "staff"
 end
 
 directory Chef::Config[:file_cache_path]
@@ -9,6 +10,7 @@ homebrew_tar = "#{Chef::Config[:file_cache_path]}/mxcl-homebrew.tar.gz"
 remote_file homebrew_tar do
   source "http://github.com/mxcl/homebrew/tarball/master"
   owner node[:homebrew][:user]
+  group "staff"
   action :create_if_missing
 end
 
