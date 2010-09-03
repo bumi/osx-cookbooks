@@ -21,7 +21,7 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
   attr_reader :init_command, :status_command
   attr_reader :current_resource
 
-  def initialize(new_resource, run_context = nil)
+  def initialize(new_resource, run_context)
     super
     @init_command   = "launchctl"
     @status_command = "launchctl list"
