@@ -1,5 +1,3 @@
-Chef::Provider::Package::Homebrew.config = node[:homebrew]
-
 directory node[:homebrew][:prefix] do
   action :create
   owner node[:homebrew][:user]
