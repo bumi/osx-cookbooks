@@ -25,6 +25,8 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
     super
     @init_command   = "launchctl"
     @status_command = "launchctl list"
+
+    @user = run_context.node[:launch][:user]
   end
 
   def load_current_resource
@@ -42,8 +44,8 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
     @path ||= self.class.detect_path(label)
   end
 
-  def use_sudo?
-    path =~ %r{^/System}
+  def user
+    path =~ %r{^/System} ? "root" : @user
   end
 
   def action_reload
@@ -55,22 +57,22 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
   end
 
   def enable_service
-    run_command(:command => "#{sudo}#{init_command} load -w -F #{path}")
+    run_command(:command => "#{init_command} load -w -F #{path}", :user => user)
     service_status.enabled
   end
 
   def disable_service
-    run_command(:command => "#{sudo}#{init_command} unload -w -F #{path}")
+    run_command(:command => "#{init_command} unload -w -F #{path}", :user => user)
     service_status.enabled
   end
 
   def start_service
-    run_command(:command => "#{sudo}#{init_command} start #{label}")
+    run_command(:command => "#{init_command} start #{label}", :user => user)
     service_status.running
   end
 
   def stop_service
-    run_command(:command => "#{sudo}#{init_command} stop #{label}")
+    run_command(:command => "#{init_command} stop #{label}", :user => user)
     service_status.running
   end
 
@@ -85,7 +87,7 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
   end
 
   def service_status
-    status, stdout, stderr = output_of_command("#{sudo}#{status_command} | grep #{label}", {})
+    status, stdout, stderr = output_of_command("#{status_command} | grep #{label}", :user => user)
 
     if status == 0
       pid = stdout.split(' ')[0]
@@ -105,15 +107,6 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
 
     current_resource
   end
-
-  private
-    def sudo
-      if use_sudo?
-        "sudo "
-      else
-        ""
-      end
-    end
 end
 
 require 'chef/platform'
