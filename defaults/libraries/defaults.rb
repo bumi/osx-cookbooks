@@ -4,6 +4,12 @@ class Chef::Resource::Defaults < Chef::Resource
   def initialize(domain, key, run_context = nil)
     super("#{domain} #{key}", run_context)
 
+    if run_context
+      @user = run_context.node[:defaults][:user]
+    else
+      @user = nil
+    end
+
     @domain = domain
     @key = key
     @type = nil
@@ -12,6 +18,10 @@ class Chef::Resource::Defaults < Chef::Resource
     @resource_name = :defaults
     @action = "run"
     @allowed_actions.push(:run)
+  end
+
+  def user(arg = nil)
+    set_or_return(:user, arg, :kind_of => [String])
   end
 
   def domain(arg = nil)
@@ -93,9 +103,9 @@ class Chef::Provider::Defaults < Chef::Provider
     domain = new_resource.domain
     key    = new_resource.key
 
-    @current_resource = Chef::Resource::Defaults.new(domain, key)
+    @current_resource = Chef::Resource::Defaults.new(domain, key, @run_context)
 
-    status, stdout, stderr = output_of_command("defaults read-type #{domain} #{key}", {})
+    status, stdout, stderr = output_of_command("defaults read-type #{domain} #{key}", {:user => @current_resource.user})
     if status == 0 && stdout =~ /Type is (\w+)/
       @current_resource.type($1)
     end
@@ -104,7 +114,7 @@ class Chef::Provider::Defaults < Chef::Provider
       @new_resource.type(@current_resource.type)
     end
 
-    status, stdout, stderr = output_of_command("defaults read #{domain} #{key}", {})
+    status, stdout, stderr = output_of_command("defaults read #{domain} #{key}", {:user => @current_resource.user})
     if status == 0
       value = decode(@current_resource.type, stdout)
       @current_resource.value(value)
@@ -129,7 +139,7 @@ class Chef::Provider::Defaults < Chef::Provider
 
       command = "defaults write #{domain} #{key} -#{type} #{value.inspect}"
 
-      if run_command(:command => command, :command_string => @new_resource.to_s)
+      if run_command(:command => command, :command_string => @new_resource.to_s, :user => @new_resource.user)
         @new_resource.updated = true
         Chef::Log.info("Ran #{@new_resource} successfully")
       end
