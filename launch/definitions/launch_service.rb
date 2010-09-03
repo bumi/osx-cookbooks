@@ -7,6 +7,14 @@ define :launch_service do
   params[:path] ||= Chef::Provider::Service::Launch.detect_path(params[:name])
 
   template params[:path] do
+    if Chef::Provider::Service::Launch.path_owned_by_root?(params[:path])
+      owner "root"
+      group "wheel"
+    else
+      owner node[:launch][:user]
+      group "staff"
+    end
+
     source params[:template_name]
     variables params[:template_variables]
     notifies :reload, resource

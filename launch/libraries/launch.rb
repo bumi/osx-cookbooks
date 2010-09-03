@@ -18,6 +18,10 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
     ::File.join(PATHS.first, "#{label}.plist")
   end
 
+  def self.path_owned_by_root?(path)
+    path =~ %r{^/System}
+  end
+
   attr_reader :init_command, :status_command
   attr_reader :current_resource
 
@@ -45,7 +49,7 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
   end
 
   def user
-    path =~ %r{^/System} ? "root" : @user
+    self.class.path_owned_by_root?(path) ? "root" : @user
   end
 
   def action_reload
