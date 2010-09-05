@@ -16,8 +16,8 @@ class Chef::Resource::Defaults < Chef::Resource
     @value = nil
 
     @resource_name = :defaults
-    @action = "run"
-    @allowed_actions.push(:run)
+    @action = "write"
+    @allowed_actions.push(:write, :delete)
   end
 
   def user(arg = nil)
@@ -123,7 +123,7 @@ class Chef::Provider::Defaults < Chef::Provider
     @current_resource
   end
 
-  def action_run
+  def action_write
     if @current_resource.type == @new_resource.type &&
         @current_resource.value == @new_resource.value
       Chef::Log.debug "Skipping #{@new_resource} since the value is already set"
@@ -138,6 +138,19 @@ class Chef::Provider::Defaults < Chef::Provider
       value  = encode(type, @new_resource.value)
 
       command = "defaults write #{domain} #{key} -#{type} #{value.inspect}"
+
+      if run_command(:command => command, :command_string => @new_resource.to_s, :user => @new_resource.user)
+        @new_resource.updated = true
+        Chef::Log.info("Ran #{@new_resource} successfully")
+      end
+    end
+  end
+
+  def action_delete
+    if @current_resource.value
+      domain  = @new_resource.domain
+      key     = @new_resource.key
+      command = "defaults delete #{domain} #{key}"
 
       if run_command(:command => command, :command_string => @new_resource.to_s, :user => @new_resource.user)
         @new_resource.updated = true
