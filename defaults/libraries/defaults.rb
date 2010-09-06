@@ -77,7 +77,7 @@ class Chef::Provider::Defaults < Chef::Provider
     case obj
     when TrueClass
       'YES'
-    when FalseClass, NilClass
+    when FalseClass
       'NO'
     else
       nil
@@ -127,19 +127,10 @@ class Chef::Provider::Defaults < Chef::Provider
     if @current_resource.type == @new_resource.type &&
         @current_resource.value == @new_resource.value
       Chef::Log.debug "Skipping #{@new_resource} since the value is already set"
+    elsif @new_resource.value.nil?
+      action_delete
     else
-      if @new_resource.type.nil?
-        @new_resource.type(guess_type(@new_resource.value))
-      end
-
-      domain = @new_resource.domain
-      key    = @new_resource.key
-      type   = @new_resource.type
-      value  = encode(type, @new_resource.value)
-
-      command = "defaults write #{domain} #{key} -#{type} #{value.inspect}"
-
-      if run_command(:command => command, :command_string => @new_resource.to_s, :user => @new_resource.user)
+      if write_key(@new_resource)
         @new_resource.updated = true
         Chef::Log.info("Ran #{@new_resource} successfully")
       end
@@ -148,15 +139,42 @@ class Chef::Provider::Defaults < Chef::Provider
 
   def action_delete
     if @current_resource.value
-      domain  = @new_resource.domain
-      key     = @new_resource.key
-      command = "defaults delete #{domain} #{key}"
-
-      if run_command(:command => command, :command_string => @new_resource.to_s, :user => @new_resource.user)
+      if delete_key(@new_resource)
         @new_resource.updated = true
         Chef::Log.info("Ran #{@new_resource} successfully")
       end
     end
+  end
+
+  def write_key(resource)
+    if resource.type.nil?
+      resource.type(guess_type(resource.value))
+    end
+
+    domain = resource.domain
+    key    = resource.key
+    type   = resource.type
+    value  = encode(type, resource.value)
+
+    command = "defaults write #{domain} #{key} -#{type} #{value.inspect}"
+
+    run_command(
+      :command => command,
+      :command_string => resource.to_s,
+      :user => resource.user
+    )
+  end
+
+  def delete_key(resource)
+    domain  = resource.domain
+    key     = resource.key
+    command = "defaults delete #{domain} #{key}"
+
+    run_command(
+      :command => command,
+      :command_string => resource.to_s,
+      :user => resource.user
+    )
   end
 
   private
