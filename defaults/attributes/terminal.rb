@@ -1,0 +1,1 @@
+default.apple[:terminal]
