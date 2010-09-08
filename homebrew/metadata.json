@@ -1,0 +1,33 @@
+{
+  "groupings": {
+  },
+  "attributes": {
+  },
+  "recommendations": {
+  },
+  "dependencies": {
+  },
+  "platforms": {
+    "mac_os_x": [
+
+    ]
+  },
+  "long_description": "",
+  "suggestions": {
+  },
+  "recipes": {
+    "homebrew": "Installs/updates homebrew"
+  },
+  "license": "MIT",
+  "conflicting": {
+  },
+  "version": "0.1.0",
+  "providing": {
+  },
+  "maintainer": "Joshua Peek",
+  "description": "Configures homebrew and homebrew packages",
+  "name": "homebrew",
+  "replacing": {
+  },
+  "maintainer_email": "josh@joshpeek.com"
+}

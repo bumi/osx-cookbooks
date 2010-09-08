@@ -1,0 +1,35 @@
+{
+  "groupings": {
+  },
+  "attributes": {
+  },
+  "recommendations": {
+  },
+  "dependencies": {
+  },
+  "platforms": {
+    "mac_os_x": [
+
+    ]
+  },
+  "long_description": "",
+  "suggestions": {
+  },
+  "recipes": {
+  },
+  "license": "MIT",
+  "conflicting": {
+  },
+  "version": "0.1.0",
+  "providing": {
+    "launch_service(:name)": [
+
+    ]
+  },
+  "maintainer": "Joshua Peek",
+  "description": "Provides launchd service",
+  "name": "launch",
+  "replacing": {
+  },
+  "maintainer_email": "josh@joshpeek.com"
+}
