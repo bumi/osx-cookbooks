@@ -1,3 +1,3 @@
 include_recipe "node"
 
-package "coffee-script"
+npm_package "coffee-script"
