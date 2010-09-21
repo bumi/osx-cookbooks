@@ -19,7 +19,11 @@ class Chef::Provider::Package::Homebrew < ::Chef::Provider::Package
     @current_resource.version(current_installed_version)
     Chef::Log.debug("Current version is #{@current_resource.version}") if @current_resource.version
 
-    @candidate_version = homebrew_candiate_version
+    if @new_resource.version == 'HEAD'
+      @candidate_version = 'HEAD'
+    else
+      @candidate_version = homebrew_candiate_version
+    end
 
     if !@new_resource.version && !@candidate_version
       raise Chef::Exceptions::Package, "Could not get a candidate version for this package -- #{@new_resource.name} does not seem to be a valid package!"
