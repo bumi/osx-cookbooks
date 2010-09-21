@@ -19,7 +19,7 @@ class Chef::Provider::Package::Homebrew < ::Chef::Provider::Package
     @current_resource.version(current_installed_version)
     Chef::Log.debug("Current version is #{@current_resource.version}") if @current_resource.version
 
-    if @new_resource.version == 'HEAD'
+    if @current_resource.version == 'HEAD'
       @candidate_version = 'HEAD'
     else
       @candidate_version = homebrew_candiate_version
