@@ -41,7 +41,9 @@ class Chef::Provider::Package::Homebrew < ::Chef::Provider::Package
   end
 
   def install_package(name, version)
-    run_brew_command "#{brew_bin} install#{expand_options(@new_resource.options)} #{name}"
+    options = expand_options(@new_resource.options)
+    options += " --HEAD" if version == 'HEAD'
+    run_brew_command "#{brew_bin} install#{options} #{name}"
   end
 
   def upgrade_package(name, version)
