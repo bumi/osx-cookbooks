@@ -9,3 +9,7 @@ end
 defaults "com.apple.safari", "DownloadsClearingPolicy" do
   value node[:apple][:safari][:downloads_clearing_policy]
 end
+
+defaults "com.apple.safari", "ShowFavoritesBar" do
+  value node[:apple][:safari][:show_favorites_bar]
+end
