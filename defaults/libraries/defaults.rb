@@ -96,6 +96,18 @@ class Chef::Provider::Defaults < Chef::Provider
     end
   end
 
+  decoder :integer do |value|
+    value.to_i
+  end
+
+  encoder :integer do |obj|
+    if obj.respond_to?(:to_int)
+      obj
+    else
+      nil
+    end
+  end
+
 
   include Chef::Mixin::Command
 
@@ -179,20 +191,29 @@ class Chef::Provider::Defaults < Chef::Provider
 
   private
     def decode(type, value)
-      self.class.decoders[type].call(value)
+      if decoder = self.class.decoders[type]
+        decoder.call(value)
+      else
+        raise "Unknown decoder for #{type}: #{value.inspect}"
+      end
     end
 
     def encode(type, obj)
-      self.class.encoders[type].call(obj)
+      if encoder = self.class.encoders[type]
+        encoder.call(obj)
+      else
+        raise "Unknown encoder for #{type}: #{obj.inspect}"
+      end
     end
 
     def guess_type(obj)
       Chef::Log.debug "Guessing defaults type for #{obj.inspect}"
       self.class.encoders.each do |type, encoder|
-        if obj = encoder.call(obj)
+        if encoder.call(obj)
           return type
         end
       end
-      nil
+
+      raise "Could not guess type of #{obj.inspect}"
     end
 end
