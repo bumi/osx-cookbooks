@@ -28,6 +28,13 @@ end
 
 include_recipe "git"
 
-execute "#{node[:homebrew][:prefix]}/bin/brew update" do
+execute "brew update" do
+  command "#{node[:homebrew][:prefix]}/bin/brew update"
   user node[:homebrew][:user]
+end
+
+execute "brew cleanup" do
+  command "#{node[:homebrew][:prefix]}/bin/brew cleanup"
+  user node[:homebrew][:user]
+  action :nothing
 end
