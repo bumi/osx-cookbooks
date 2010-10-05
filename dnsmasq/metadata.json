@@ -1,0 +1,32 @@
+{
+  "groupings": {
+  },
+  "attributes": {
+  },
+  "recommendations": {
+  },
+  "dependencies": {
+  },
+  "platforms": {
+    "mac_os_x": [
+
+    ]
+  },
+  "long_description": "",
+  "suggestions": {
+  },
+  "recipes": {
+  },
+  "license": "MIT",
+  "conflicting": {
+  },
+  "version": "0.1.0",
+  "providing": {
+  },
+  "maintainer": "Joshua Peek",
+  "description": "Installs/configures Dnsmasq",
+  "name": "dnsmasq",
+  "replacing": {
+  },
+  "maintainer_email": "josh@joshpeek.com"
+}

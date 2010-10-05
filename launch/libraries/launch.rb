@@ -19,7 +19,7 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
   end
 
   def self.path_owned_by_root?(path)
-    path =~ %r{^/System}
+    path =~ %r{^/System|^/Library}
   end
 
   attr_reader :init_command, :status_command

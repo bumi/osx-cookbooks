@@ -7,6 +7,8 @@ define :launch_service do
   params[:path] ||= Chef::Provider::Service::Launch.detect_path(params[:name])
 
   template params[:path] do
+    mode "0644"
+
     if Chef::Provider::Service::Launch.path_owned_by_root?(params[:path])
       owner "root"
       group "wheel"
