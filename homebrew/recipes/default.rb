@@ -4,19 +4,24 @@ directory node[:homebrew][:prefix] do
   group "staff"
 end
 
-directory Chef::Config[:file_cache_path]
 homebrew_tar = "#{Chef::Config[:file_cache_path]}/mxcl-homebrew.tar.gz"
 
-remote_file homebrew_tar do
-  source "http://github.com/mxcl/homebrew/tarball/master"
-  owner node[:homebrew][:user]
-  group "staff"
-  action :create_if_missing
+unless File.exist?("#{node[:homebrew][:prefix]}/bin/brew")
+  remote_file homebrew_tar do
+    source "http://github.com/mxcl/homebrew/tarball/master"
+    owner node[:homebrew][:user]
+    group "staff"
+    action :create_if_missing
+  end
+
+  execute "tar -xzf #{homebrew_tar} -C #{node[:homebrew][:prefix]} --strip 1" do
+    user node[:homebrew][:user]
+    creates "#{node[:homebrew][:prefix]}/bin/brew"
+  end
 end
 
-execute "tar -xzf #{homebrew_tar} -C #{node[:homebrew][:prefix]} --strip 1" do
-  user node[:homebrew][:user]
-  creates "#{node[:homebrew][:prefix]}/bin/brew"
+file homebrew_tar do
+  action :delete
 end
 
 ruby_block "check homebrew" do
