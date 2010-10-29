@@ -55,7 +55,7 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
   def action_reload
     Chef::Log.debug("#{@new_resource}: attempting to reload")
     if reload_service
-      @new_resource.updated = true
+      @new_resource.updated_by_last_action true
       Chef::Log.info("#{@new_resource}: reloaded successfully")
     end
   end

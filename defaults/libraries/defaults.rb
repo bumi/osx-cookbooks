@@ -143,7 +143,7 @@ class Chef::Provider::Defaults < Chef::Provider
       action_delete
     else
       if write_key(@new_resource)
-        @new_resource.updated = true
+        @new_resource.updated_by_last_action true
         Chef::Log.info("Ran #{@new_resource} successfully")
       end
     end
@@ -152,7 +152,7 @@ class Chef::Provider::Defaults < Chef::Provider
   def action_delete
     if @current_resource.value
       if delete_key(@new_resource)
-        @new_resource.updated = true
+        @new_resource.updated_by_last_action true
         Chef::Log.info("Ran #{@new_resource} successfully")
       end
     end
