@@ -1,0 +1,1 @@
+default.redis[:launchd] = false
