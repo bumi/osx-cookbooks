@@ -1,0 +1,1 @@
+default.imagemagick[:ghostscript] = false
