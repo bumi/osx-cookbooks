@@ -12,3 +12,19 @@ execute "#{rvm_git}/bin/rvm-install --prefix #{prefix.inspect}" do
   user node[:rvm][:user]
   not_if { File.exist?("#{prefix}rvm") }
 end
+
+node[:rvm][:rubies].each do |ruby|
+  bash "rvm install #{ruby}" do
+    code <<-EOS
+      export rvm_path=#{node[:rvm][:prefix]}rvm
+      source "#{node[:rvm][:prefix]}rvm/scripts/rvm"
+      rvm install #{ruby}
+    EOS
+    not_if <<-EOS
+      export rvm_path=#{node[:rvm][:prefix]}rvm
+      source "#{node[:rvm][:prefix]}rvm/scripts/rvm"
+      rvm list | grep #{ruby}
+   EOS
+    user node[:rvm][:user]
+  end
+end
