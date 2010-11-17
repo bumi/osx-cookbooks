@@ -96,7 +96,7 @@ class Chef::Provider::Application < Chef::Provider
       @new_resource.run_action :download
       @new_resource.run_action :unarchive
 
-      command = "cp -R #{extracted_path}/#{@new_resource.name} /Applications"
+      command = "cp -R #{File.join(extracted_path, @new_resource.name).inspect} /Applications"
       run_command(:command => command, :user => @new_resource.user)
 
       @new_resource.updated_by_last_action true

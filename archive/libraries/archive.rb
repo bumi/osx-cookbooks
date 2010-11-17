@@ -78,8 +78,9 @@ class Chef::Provider::Archive::Dmg < Chef::Provider::Archive
     status, stdout, stderr = output_of_command("hdiutil attach #{resource.name}", {:user => resource.user})
     if status == 0
       volume = stdout.split("\t").last.chomp
-      run_command(:command => "cp -R #{volume}/* #{resource.path}", :user => resource.user)
-      run_command(:command => "hdiutil detach #{volume}", :user => resource.user)
+      volume_files = File.join(volume, "*")
+      run_command(:command => "cp -R #{volume_files.inspect} #{resource.path.inspect}", :user => resource.user)
+      run_command(:command => "hdiutil detach #{volume.inspect}", :user => resource.user)
     else
       raise "could not mount #{resource.name}"
     end
