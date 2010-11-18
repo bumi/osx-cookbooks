@@ -6,12 +6,13 @@
 	<true/>
 	<key>Label</key>
 	<string>com.mysql.mysqld</string>
-	<key>Program</key>
-	<string>/usr/local/bin/mysqld_safe</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string><%= @prefix %>/bin/mysqld</string>
+		<string>--datadir=<%= @prefix %>/var/mysql</string>
+	</array>
 	<key>RunAtLoad</key>
 	<true/>
-	<key>UserName</key>
-	<string><%= @user %></string>
 	<key>WorkingDirectory</key>
 	<string>/usr/local/var</string>
 </dict>
