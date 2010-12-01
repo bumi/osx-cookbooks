@@ -6,6 +6,14 @@ define :launch_service do
   params[:template_name] ||= "#{params[:name]}.plist.erb"
   params[:path] ||= Chef::Provider::Service::Launch.detect_path(params[:name])
 
+  dirname = File.dirname(params[:path])
+  unless Chef::Provider::Service::Launch.path_owned_by_root?(dirname)
+    directory dirname do
+      owner node[:launch][:user]
+      group "staff"
+    end
+  end
+
   template params[:path] do
     mode "0644"
 
