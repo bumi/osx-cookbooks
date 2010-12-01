@@ -1,4 +1,5 @@
 require 'chef/provider/service'
+require 'shellwords'
 
 class Chef::Provider::Service::Launch < Chef::Provider::Service
   PATHS = [
@@ -61,12 +62,12 @@ class Chef::Provider::Service::Launch < Chef::Provider::Service
   end
 
   def enable_service
-    run_command(:command => "#{init_command} load -w -F #{path}", :user => user)
+    run_command(:command => "#{init_command} load -w -F #{path.shellescape}", :user => user)
     service_status.enabled
   end
 
   def disable_service
-    run_command(:command => "#{init_command} unload -w -F #{path}", :user => user)
+    run_command(:command => "#{init_command} unload -w -F #{path.shellescape}", :user => user)
     service_status.enabled
   end
 

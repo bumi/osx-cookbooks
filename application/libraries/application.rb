@@ -1,4 +1,5 @@
 require 'chef/resource'
+require 'shellwords'
 
 class Chef::Resource::Application < Chef::Resource
   def initialize(name, run_context = nil)
@@ -96,7 +97,8 @@ class Chef::Provider::Application < Chef::Provider
       @new_resource.run_action :download
       @new_resource.run_action :unarchive
 
-      command = "cp -R #{File.join(extracted_path, @new_resource.name).inspect} /Applications"
+      source  = File.join(extracted_path, @new_resource.name)
+      command = "cp -R #{source.shellescape} /Applications"
       run_command(:command => command, :user => @new_resource.user)
 
       @new_resource.updated_by_last_action true

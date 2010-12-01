@@ -1,4 +1,5 @@
 require 'chef/resource'
+require 'shellwords'
 
 class Chef::Resource::Archive < Chef::Resource
   def initialize(name, run_context = nil)
@@ -39,7 +40,7 @@ class Chef::Provider::Archive < Chef::Provider
   end
 
   def action_extract
-    run_command(:command => "mkdir -p #{@new_resource.path}", :user => @new_resource.user)
+    run_command(:command => "mkdir -p #{@new_resource.path.shellescape}", :user => @new_resource.user)
 
     extract @new_resource
 
@@ -54,33 +55,33 @@ end
 
 class Chef::Provider::Archive::Tar < Chef::Provider::Archive
   def extract(resource)
-    command = "tar -xf #{resource.name}"
+    command = "tar -xf #{resource.name.shellescape}"
     run_command(:command => command, :cwd => resource.path, :user => resource.user)
   end
 end
 
 class Chef::Provider::Archive::Gzip < Chef::Provider::Archive
   def extract(resource)
-    command = "tar -zxf #{resource.name}"
+    command = "tar -zxf #{resource.name.shellescape}"
     run_command(:command => command, :cwd => resource.path, :user => resource.user)
   end
 end
 
 class Chef::Provider::Archive::Zip < Chef::Provider::Archive
   def extract(resource)
-    command = "unzip -o #{resource.name}"
+    command = "unzip -o #{resource.name.shellescape}"
     run_command(:command => command, :cwd => resource.path, :user => resource.user)
   end
 end
 
 class Chef::Provider::Archive::Dmg < Chef::Provider::Archive
   def extract(resource)
-    status, stdout, stderr = output_of_command("hdiutil attach #{resource.name}", {:user => resource.user})
+    status, stdout, stderr = output_of_command("hdiutil attach #{resource.name.shellescape}", {:user => resource.user})
     if status == 0
       volume = stdout.split("\t").last.chomp
       volume_files = File.join(volume, "*")
-      run_command(:command => "cp -R #{volume_files.inspect} #{resource.path.inspect}", :user => resource.user)
-      run_command(:command => "hdiutil detach #{volume.inspect}", :user => resource.user)
+      run_command(:command => "cp -R #{volume_files.shellescape} #{resource.path.shellescape}", :user => resource.user)
+      run_command(:command => "hdiutil detach #{volume.shellescape}", :user => resource.user)
     else
       raise "could not mount #{resource.name}"
     end
