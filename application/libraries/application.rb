@@ -97,7 +97,7 @@ class Chef::Provider::Application < Chef::Provider
       @new_resource.run_action :download
       @new_resource.run_action :unarchive
 
-      source  = File.join(extracted_path, @new_resource.name)
+      source  = ::File.join(extracted_path, @new_resource.name)
       command = "cp -R #{source.shellescape} /Applications"
       run_command(:command => command, :user => @new_resource.user)
 
